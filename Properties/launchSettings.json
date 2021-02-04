@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Pic2Chicory": {
+      "commandName": "Project",
+      "commandLineArgs": "\"\" 30 30 test"
+    }
+  }
+}
