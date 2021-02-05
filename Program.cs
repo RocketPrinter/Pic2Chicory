@@ -25,15 +25,6 @@ namespace Pic2Chicory
             }
         }
     }
-    public struct Vector2Int
-    {
-        public int x, y;
-        public Vector2Int(int _x, int _y)
-        {
-            x = _x;
-            y = _y;
-        }
-    }
     
     public static class Program
     {
@@ -105,44 +96,43 @@ namespace Pic2Chicory
         }
 
 
-        public static int selectedColorIndex=0;
-        //if returns false skip color or use right mouse
-        public static bool SelectColor(Rgba32 color)
+        // if -1 skip or use white
+        public static int GetNearestColorIndex(Rgba32 color)
         {
-            //for testing
-#pragma warning disable CS0162 // Unreachable code detected
-            if (disableColors) return true;
-#pragma warning restore CS0162 // Unreachable code detected
-
-            int newIndex=-1;
+            int index = -1;
             //choose bestColor
             {
                 double distance;
                 //not all palattes have pure white but it's good enough
                 double bestDistance = Utils.RedMeanColorDifference(color, new Rgba32(255, 255, 255, 255));
-                for (int i=0;i<selectedPalette.colors.Length;i++)
+                for (int i = 0; i < selectedPalette.colors.Length; i++)
                 {
                     distance = Utils.RedMeanColorDifference(color, selectedPalette.colors[i]);
                     if (bestDistance > distance)
                     {
-                        distance = bestDistance;
-                        newIndex = i;
+                        bestDistance = distance;
+                        index = i;
                     }
                 }
-
             }
-            if (newIndex == -1)
-                return false;
-            
-            while (newIndex!=selectedColorIndex)
+            return index;
+        }
+
+        public static int selectedColorIndex=0;
+        public static void SelectColor(int colorIndex)
+        {
+#pragma warning disable CS0162 // Unreachable code detected
+            if (disableColors) return;//for testing
+#pragma warning restore CS0162 // Unreachable code detected
+
+            if (colorIndex == -1)return;
+            while (colorIndex != selectedColorIndex)
             {
                 System.Windows.Forms.SendKeys.SendWait("Z");
                 selectedColorIndex++;
                 selectedColorIndex %= selectedPalette.colors.Length;
                 Thread.Sleep(sendKeyDelay);
             }
-
-            return true;
         }
     }
     

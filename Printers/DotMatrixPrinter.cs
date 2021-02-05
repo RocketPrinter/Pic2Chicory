@@ -10,6 +10,16 @@ namespace Pic2Chicory.Printers
 {
     class DotMatrixPrinter : IPrinter
     {
+        private struct Dot
+        {
+            public int x, y;
+            public Dot(int x,int y)
+            {
+                this.x = x;
+                this.y = y;
+            }
+        }
+
         //miliseconds
         public const int posDownDelay = 25;
         public const int downUpDelay = 25;
@@ -17,28 +27,38 @@ namespace Pic2Chicory.Printers
 
         public void Print(Image<Rgba32> image, int rezx, int rezy)
         {
-            Vector2Int[] posarr = new Vector2Int[rezx * rezy];
+            //sort the dots by index
+            List<Dot>[] dotsByIndex = new List<Dot>[Program.selectedPalette.colors.Length];
+            for (int i = 0; i < dotsByIndex.Length; i++) dotsByIndex[i] = new List<Dot>();
+
             for (int i = 0; i < rezx; i++)
                 for (int j = 0; j < rezy; j++)
                 {
-                    posarr[i * rezy + j] = new Vector2Int(i, j);
+                    int cindex = Program.GetNearestColorIndex(image[i, j]);
+                    if (cindex == -1) continue;
+                    dotsByIndex[cindex].Add(new Dot(i,j));
                 }
-            //posarr.Shuffle();
+            
+            //shuffle because it looks cooler
+            for (int i = 0; i < dotsByIndex.Length; i++) dotsByIndex[i].Shuffle();
 
             float offsetx = 0.5f / rezx;
             float offsety = 0.5f / rezy;
 
-            foreach (Vector2Int v2i in posarr)
+            //paint
+            for (int i = 0; i < dotsByIndex.Length; i++)
             {
-                //make sure we have the right color selected or skip this one
-                if (Program.SelectColor(image[v2i.x,v2i.y])== false) continue;
+                Program.SelectColor(i);//select the right color
 
-                CursorControl.SetCursorPos01(offsetx + (double)v2i.x / rezx, offsety + (double)v2i.y / rezy);
-                Thread.Sleep(posDownDelay);
-                CursorControl.sendMouseDown();
-                Thread.Sleep(downUpDelay);
-                CursorControl.sendMouseUp();
-                Thread.Sleep(upPosDelay);
+                foreach (Dot dot in dotsByIndex[i])
+                {
+                    CursorControl.SetCursorPos01(offsetx + (double)dot.x / rezx, offsety + (double)dot.y / rezy);
+                    Thread.Sleep(posDownDelay);
+                    CursorControl.sendMouseDown();
+                    Thread.Sleep(downUpDelay);
+                    CursorControl.sendMouseUp();
+                    Thread.Sleep(upPosDelay);
+                }
             }
         }
     }
