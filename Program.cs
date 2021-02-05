@@ -34,8 +34,8 @@ namespace Pic2Chicory
             new ColorPalette("Main Menu", "#FFA192","#B696ED","#00EAD0","#D8F55D")
         };
 
-        public const int startingDelay = 3;//seconds
-        public const int sendKeyDelay = 100;//miliseconds
+        public const int startingDelay = 5;//seconds
+        public const int sendKeyDelay = 25;//miliseconds
 
         public const bool disableColors = false;//for testing
         #endregion
@@ -80,8 +80,8 @@ namespace Pic2Chicory
             //image processing
             //TODO: If image isn't RGBA it will throw an exception. Find a way to fix this ¯\_(ツ)_/¯
             using Image<Rgba32> image = (Image<Rgba32>)Image.Load(imagePath);
-            
             image.Mutate((x) => x.Resize(rezx,rezy));
+            image.Save("resized.png");
 
             //do the coloring
             Console.WriteLine("Starting in {0} seconds", startingDelay);
@@ -99,6 +99,9 @@ namespace Pic2Chicory
         // if -1 skip or use white
         public static int GetNearestColorIndex(Rgba32 color)
         {
+            //if transparent ignore the point
+            if (color.A < 127) return -1;
+
             int index = -1;
             //choose bestColor
             {
