@@ -23,7 +23,7 @@ namespace Pic2Chicory.Printers
                 {
                     posarr[i * rezy + j] = new Vector2Int(i, j);
                 }
-            posarr.Shuffle();
+            //posarr.Shuffle();
 
             float offsetx = 0.5f / rezx;
             float offsety = 0.5f / rezy;

@@ -44,7 +44,7 @@ namespace Pic2Chicory
         };
 
         public const int startingDelay = 3;//seconds
-        public const int sendKeyDelay = 1000;//miliseconds
+        public const int sendKeyDelay = 100;//miliseconds
 
         public const bool disableColors = false;//for testing
         #endregion
@@ -87,6 +87,7 @@ namespace Pic2Chicory
             #endregion
 
             //image processing
+            //TODO: If image isn't RGBA it will throw an exception. Find a way to fix this ¯\_(ツ)_/¯
             using Image<Rgba32> image = (Image<Rgba32>)Image.Load(imagePath);
             
             image.Mutate((x) => x.Resize(rezx,rezy));
@@ -136,8 +137,8 @@ namespace Pic2Chicory
             while (newIndex!=selectedColorIndex)
             {
                 System.Windows.Forms.SendKeys.SendWait("Z");
-                newIndex++;
-                newIndex %= selectedPalette.colors.Length;
+                selectedColorIndex++;
+                selectedColorIndex %= selectedPalette.colors.Length;
                 Thread.Sleep(sendKeyDelay);
             }
 
