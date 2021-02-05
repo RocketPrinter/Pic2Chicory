@@ -25,6 +25,7 @@ namespace Pic2Chicory.Printers
         public const int downUpDelay = 25;
         public const int upPosDelay = 25;
 
+        public const float ignoreDotDistance=2f;
         public void Print(Image<Rgba32> image, int rezx, int rezy)
         {
             //sort the dots by index
@@ -46,12 +47,16 @@ namespace Pic2Chicory.Printers
             float offsety = 0.5f / rezy;
 
             //paint
+            Dot lastDot = new Dot(-999999,-999999);
             for (int i = 0; i < dotsByIndex.Length; i++)
             {
                 Program.SelectColor(i);//select the right color
 
                 foreach (Dot dot in dotsByIndex[i])
                 {
+                    double distance = Math.Sqrt((dot.x-lastDot.x)* (dot.x - lastDot.x)+(dot.y-lastDot.y)* (dot.y - lastDot.y));
+                    lastDot = dot;
+                    if (distance <= ignoreDotDistance) continue;
                     CursorControl.SetCursorPos01(offsetx + (double)dot.x / rezx, offsety + (double)dot.y / rezy);
                     Thread.Sleep(posDownDelay);
                     CursorControl.sendMouseDown();
