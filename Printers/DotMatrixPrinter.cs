@@ -25,7 +25,8 @@ namespace Pic2Chicory.Printers
         public const int downUpDelay = 25;
         public const int upPosDelay = 25;
 
-        public const float ignoreDotDistance=2f;
+        public const float doubleclickPreventionDistance=2f;
+        public const int doubleclickPreventionDelay = 200;
         public void Print(Image<Rgba32> image, int rezx, int rezy)
         {
             //sort the dots by index
@@ -55,8 +56,9 @@ namespace Pic2Chicory.Printers
                 foreach (Dot dot in dotsByIndex[i])
                 {
                     double distance = Math.Sqrt((dot.x-lastDot.x)* (dot.x - lastDot.x)+(dot.y-lastDot.y)* (dot.y - lastDot.y));
+                    if (distance <= doubleclickPreventionDistance)
+                        Thread.Sleep(doubleclickPreventionDelay);
                     lastDot = dot;
-                    if (distance <= ignoreDotDistance) continue;
                     CursorControl.SetCursorPos01(offsetx + (double)dot.x / rezx, offsety + (double)dot.y / rezy);
                     Thread.Sleep(posDownDelay);
                     CursorControl.sendMouseDown();

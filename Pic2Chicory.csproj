@@ -16,6 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="images\chicory_logo.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="images\mae.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
