@@ -16,10 +16,10 @@ namespace Pic2Chicory
         [DllImport("User32.Dll")]
         public static extern long SetCursorPos(int x, int y);
 
-        public static void SetCursorPos01(float x, float y)
+        public static void SetCursorPos01(double x, double y)
         {
             var screenSize = Screen.PrimaryScreen.Bounds;
-            SetCursorPos((int)(x*screenSize.Width), (int)(y*screenSize.Height));
+            SetCursorPos((int)(x * screenSize.Width), (int)(y * screenSize.Height));
         }
 
         //aka converts window/handle coordinates to screen cordinates

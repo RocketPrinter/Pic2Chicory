@@ -8,45 +8,48 @@ using SixLabors.ImageSharp.Processing;
 
 namespace Pic2Chicory
 {
-    class Program
+    public class ColorPalette
     {
-        public class ColorPalette
+        public string name;
+        public string firstColorHex;
+        public Rgba32[] colors { get; private set; }
+        public ColorPalette(string _name, params string[] hexcodes)
         {
-            public string name;
-            public Rgb24[] colors { get; private set; }
-            public ColorPalette(string _name, params string[] hexcodes)
+            name = _name;
+            firstColorHex = hexcodes[0];
+            colors = new Rgba32[hexcodes.Length];
+            for (int i = 0; i < hexcodes.Length; i++)
             {
-                name = _name;
-                colors = new Rgb24[hexcodes.Length];
-                for (int i=0;i<hexcodes.Length;i++)
-                {
-                    var drawingColor = System.Drawing.ColorTranslator.FromHtml(hexcodes[i]);
-                    colors[i] = new Rgb24(drawingColor.R,drawingColor.G,drawingColor.B);
-                }
+                var drawingColor = System.Drawing.ColorTranslator.FromHtml(hexcodes[i]);
+                colors[i] = new Rgba32(drawingColor.R, drawingColor.G, drawingColor.B,255);
             }
         }
-        public struct Vector2Int
+    }
+    public struct Vector2Int
+    {
+        public int x, y;
+        public Vector2Int(int _x, int _y)
         {
-            public int x, y;
-            public Vector2Int(int _x, int _y)
-            {
-                x = _x;
-                y = _y;
-            }
+            x = _x;
+            y = _y;
         }
-
+    }
+    
+    public static class Program
+    {
+        #region constants
         public static ColorPalette[] palettes = new ColorPalette[]
         {
-            new ColorPalette("test", "#464646")
+            new ColorPalette("Main Menu", "#FFA192","#B696ED","#00EAD0","#D8F55D")
         };
 
-        //seconds
-        public const int startingDelay = 3;
-        
-        //miliseconds
-        public const int posDownDelay = 25;
-        public const int downUpDelay  = 25;
-        public const int upPosDelay   = 25;
+        public const int startingDelay = 3;//seconds
+        public const int sendKeyDelay = 1000;//miliseconds
+
+        public const bool disableColors = false;//for testing
+        #endregion
+
+        public static ColorPalette selectedPalette;
 
         //path to picture
         //rez x
@@ -66,16 +69,15 @@ namespace Pic2Chicory
             int rezx = Convert.ToInt32(args[1]);
             int rezy = Convert.ToInt32(args[2]);
 
-            ColorPalette palette = null;
             foreach (ColorPalette cp in palettes)
             {
                 if (args[3]==cp.name)
                 {
-                    palette = cp;
+                    selectedPalette = cp;
                     break;
                 }
             }
-            if (palette == null)
+            if (selectedPalette == null)
             {
                 Console.WriteLine("Available palettes:");
                 foreach (ColorPalette cp in palettes)
@@ -84,38 +86,67 @@ namespace Pic2Chicory
             }
             #endregion
 
-            //
-            Vector2Int[] posarr = new Vector2Int[rezx*rezy];
-            for (int i=0;i<rezx;i++)
-            for (int j=0;j<rezy;j++)
-                {
-                    posarr[i * rezx + j] = new Vector2Int(i,j);
-                }
-            posarr.Shuffle();
-
             //image processing
-            //using Image<Rgb24> image = (Image<Rgb24>)Image.Load(imagePath);
-            //
-            //image.Mutate((x) => x.Resize(rezx,rezy));
+            using Image<Rgba32> image = (Image<Rgba32>)Image.Load(imagePath);
+            
+            image.Mutate((x) => x.Resize(rezx,rezy));
 
             //do the coloring
             Console.WriteLine("Starting in {0} seconds", startingDelay);
+            Console.WriteLine("Make sure you have {0} selected!",selectedPalette.firstColorHex);
             Thread.Sleep(startingDelay*1000);
             Console.WriteLine("Coloring in!");
 
-            float offsetx = 0.5f/rezx;
-            float offsety = 0.5f/rezy;
+            IPrinter printer = new Printers.DotMatrixPrinter();
+            printer.Print(image,rezx,rezy);
 
-            foreach (Vector2Int v2i in posarr)
-            {
-                CursorControl.SetCursorPos01(offsetx+(float)v2i.x / rezx,offsety+(float)v2i.y / rezy);
-                Thread.Sleep(posDownDelay);
-                CursorControl.sendMouseDown();
-                Thread.Sleep(downUpDelay);
-                CursorControl.sendMouseUp();
-                Thread.Sleep(upPosDelay);
-            }
             Console.WriteLine("Done!");
         }
+
+
+        public static int selectedColorIndex=0;
+        //if returns false skip color or use right mouse
+        public static bool SelectColor(Rgba32 color)
+        {
+            //for testing
+#pragma warning disable CS0162 // Unreachable code detected
+            if (disableColors) return true;
+#pragma warning restore CS0162 // Unreachable code detected
+
+            int newIndex=-1;
+            //choose bestColor
+            {
+                double distance;
+                //not all palattes have pure white but it's good enough
+                double bestDistance = Utils.RedMeanColorDifference(color, new Rgba32(255, 255, 255, 255));
+                for (int i=0;i<selectedPalette.colors.Length;i++)
+                {
+                    distance = Utils.RedMeanColorDifference(color, selectedPalette.colors[i]);
+                    if (bestDistance > distance)
+                    {
+                        distance = bestDistance;
+                        newIndex = i;
+                    }
+                }
+
+            }
+            if (newIndex == -1)
+                return false;
+            
+            while (newIndex!=selectedColorIndex)
+            {
+                System.Windows.Forms.SendKeys.SendWait("Z");
+                newIndex++;
+                newIndex %= selectedPalette.colors.Length;
+                Thread.Sleep(sendKeyDelay);
+            }
+
+            return true;
+        }
+    }
+    
+    public interface IPrinter
+    {
+        public abstract void Print(Image<Rgba32> image, int rezx, int rezy);
     }
 }
