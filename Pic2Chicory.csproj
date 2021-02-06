@@ -22,6 +22,9 @@
     <None Update="images\mae.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="images\ori.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="images\test1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

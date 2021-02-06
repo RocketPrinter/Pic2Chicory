@@ -2,7 +2,7 @@
   "profiles": {
     "Pic2Chicory": {
       "commandName": "Project",
-      "commandLineArgs": "\"images\\chicory_logo.jpg\" 192 108 \"Main Menu\""
+      "commandLineArgs": "\"images\\ori.jpg\" 192 108 \"Main Menu\""
     }
   }
 }

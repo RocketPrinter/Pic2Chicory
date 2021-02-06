@@ -20,8 +20,7 @@ namespace Pic2Chicory
             colors = new Rgba32[hexcodes.Length];
             for (int i = 0; i < hexcodes.Length; i++)
             {
-                var drawingColor = System.Drawing.ColorTranslator.FromHtml(hexcodes[i]);
-                colors[i] = new Rgba32(drawingColor.R, drawingColor.G, drawingColor.B,255);
+                colors[i] = Rgba32.ParseHex(hexcodes[i]);
             }
         }
     }
@@ -31,13 +30,16 @@ namespace Pic2Chicory
         #region constants
         public static ColorPalette[] palettes = new ColorPalette[]
         {
-            new ColorPalette("Main Menu", "#FFA192","#B696ED","#00EAD0","#D8F55D")
+            new ColorPalette("Main Menu", "#FFA192","#B696ED","#00EAD0","#D8F55D"),
+            new ColorPalette("Cave","#2DF3C0","#887DED","#A4F55C","#DB5DED")
         };
 
-        public const int startingDelay = 5;//seconds
-        public const int sendKeyDelay = 25;//miliseconds
+        const int startingDelay = 5;//seconds
+        const int sendKeyDelay = 25;//miliseconds
 
-        public const bool disableColors = false;//for testing
+        const bool disableColors = false;//for testing
+        enum ColorDistanceMode {redmean, hue }
+        const ColorDistanceMode colorDistanceMode = ColorDistanceMode.hue;
         #endregion
 
         public static ColorPalette selectedPalette;
@@ -95,38 +97,23 @@ namespace Pic2Chicory
             Console.WriteLine("Done!");
         }
 
-
-        // if -1 skip or use white
         public static int GetNearestColorIndex(Rgba32 color)
         {
-            //if transparent ignore the point
-            if (color.A < 127) return -1;
-
-            int index = -1;
-            //choose bestColor
+            switch (colorDistanceMode)
             {
-                double distance;
-                //not all palattes have pure white but it's good enough
-                double bestDistance = Utils.RedMeanColorDifference(color, new Rgba32(255, 255, 255, 255));
-                for (int i = 0; i < selectedPalette.colors.Length; i++)
-                {
-                    distance = Utils.RedMeanColorDifference(color, selectedPalette.colors[i]);
-                    if (bestDistance > distance)
-                    {
-                        bestDistance = distance;
-                        index = i;
-                    }
-                }
+                case ColorDistanceMode.redmean:
+                    return Color.GetNearestColorIndexRedMean(color);
+                case ColorDistanceMode.hue:
+                    //TODO: take saturation and value into account and make sure the functions are right!!!
+                    return Color.GetNearestColorIndexHue(color);
             }
-            return index;
         }
+
 
         public static int selectedColorIndex=0;
         public static void SelectColor(int colorIndex)
         {
-#pragma warning disable CS0162 // Unreachable code detected
             if (disableColors) return;//for testing
-#pragma warning restore CS0162 // Unreachable code detected
 
             if (colorIndex == -1)return;
             while (colorIndex != selectedColorIndex)
